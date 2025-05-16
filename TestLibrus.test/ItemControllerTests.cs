@@ -5,12 +5,47 @@ using TestLibrus.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using TestLibrus.Models;
 using Xunit;
 
 namespace TestLibrus.test;
 
-public class ItemControllerTests
+public class ItemControllerTests : IAsyncLifetime
 {
+    public Task InitializeAsync()
+    {
+        var context = GetInMemoryDbContext();
+        
+        User testUser = new User
+        {
+            Id = 1,
+            Name = "Tung tung tung Sahur",
+            BirthDate = DateTime.Now,
+            DeathDate = DateTime.Now,
+        };
+
+        Item testItem = new Item
+        {
+            Id = 1,
+            Name = "Test Item",
+            Description = "Test Description",
+            UserId = testUser.Id
+        };
+
+        context.Add(testItem);
+        context.Add(testUser);
+        context.SaveChanges();
+        
+        return Task.CompletedTask;
+    }
+    
+    public Task DisposeAsync()
+    {
+        GetInMemoryDbContext().Database.EnsureDeletedAsync();
+
+        return Task.CompletedTask;
+    }
+    
     private AppDbContext GetInMemoryDbContext()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
